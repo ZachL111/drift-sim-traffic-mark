@@ -1,43 +1,68 @@
 # drift-sim-traffic-mark
 
-drift-sim-traffic-mark is a C# project for simulations. It focuses on this technical goal: Create a C# reference implementation for traffic workflows, centered on protocol validation, framed sample traffic, and bounds and ordering tests.
+`drift-sim-traffic-mark` explores simulations in C#. The repository keeps the core rule set compact, then surrounds it with examples that show how the decisions move.
 
-## Why it exists
+## Drift Sim Traffic Mark Notes
 
-Small engineering tools are easiest to trust when their rules are explicit, testable, and cheap to run locally. This repository packages a focused model with fixture data and a local verification path so behavior can be reviewed without external services.
+The quickest review path is the verifier first, then the fixtures, then the operations note. That order makes it easy to see whether the code, data, and explanation still agree.
 
-## Features
+## Why This Exists
 
-- Deterministic policy scoring over fixture scenarios.
-- Clear accept or review decisions based on a documented threshold.
-- A command-line or local test path for quick validation.
-- Golden fixture data for repeatable checks.
-- Minimal dependencies and a compact project layout.
+I use this kind of project to make a rule visible before adding more machinery around it. The important part here is not the size of the codebase. It is that the input signals, scoring rule, fixture data, and expected output can all be checked in one sitting.
 
-## Architecture Notes
+## Feature Notes
 
-The core module exposes a small scoring API. Inputs are simple numeric signals: demand, capacity, latency, risk, and weight. The score uses a threshold of 158, risk penalty 4, latency penalty 4, and weight bonus 5. Tests exercise the public API against the fixture cases in `fixtures/cases.csv`.
+- Models input state with deterministic scoring and explicit review decisions.
+- Uses fixture data to keep policy checks changes visible in code review.
+- Includes extended examples for fixture data, including `recovery` and `degraded`.
+- Documents local reports tradeoffs in `docs/operations.md`.
+- Runs locally with a single verification command and no external credentials.
 
-## Setup
+## Implementation Notes
 
-Install the C# toolchain and run commands from the repository root.
+The interesting part is the boundary between accepted and reviewed scenarios. Extended examples sit near that boundary so future edits can show whether the model became more permissive or more cautious. The C# code keeps the core model in a small static API and runs checks through the executable path.
 
-## Usage
+## Code Tour
+
+- `src`: primary implementation
+- `tests`: verification harness
+- `fixtures`: compact golden scenarios
+- `examples`: expanded scenario set
+- `metadata`: project constants and verification metadata
+- `docs`: operations and extension notes
+- `scripts`: local verification and audit commands
+
+## Local Setup
+
+Install C# and run the commands from the repository root. The project does not need credentials or a hosted service.
+
+## Try It
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify.ps1
 ```
 
-The verification script builds or runs the project and checks the fixture decisions.
+This runs the language-level build or test path against the compact fixture set.
 
 ## Tests
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/audit.ps1
 ```
 
-## Limitations And Roadmap
+The audit command checks repository structure and README constraints before it delegates to the verifier.
 
-- The fixture set is intentionally small so it can be audited by hand.
-- Future work could add richer domain-specific input adapters.
-- The model is a local demonstration and does not claim production use.
+## Example Scenarios
+
+The extended cases are not random smoke tests. `degraded` keeps pressure on the review path, while `recovery` shows the model when capacity and weight are strong enough to clear the threshold.
+
+## Boundaries
+
+The repository favors determinism over breadth. It does not pull live data, keep secrets, or depend on network access for verification.
+
+## Roadmap
+
+- Add a comparison mode that shows how decisions change when one signal is adjusted.
+- Add a loader for `examples/extended_cases.csv` and promote selected cases into the language test suite.
+- Add a short report command that prints the score breakdown for a single scenario.
+- Add one more simulations fixture that focuses on a malformed or borderline input.
